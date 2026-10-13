@@ -207,6 +207,9 @@ main { min-height: 70vh; }
 .fiche__infos dd { margin: 0; font-weight: 800; text-align: right; }
 .chargement { padding: 180px 24px; text-align: center; color: var(--doux); }
 
+.avis-termine { max-width: var(--largeur); margin: 32px auto 0; padding: 18px 24px; border-radius: 16px; background: #fdecd2; border: 1px solid var(--ambre); color: var(--orange-fonce); }
+.avis-termine a { font-weight: 800; }
+
 /* ---------- Pied de page ---------- */
 .pied { position: relative; background: var(--encre-profond); color: rgba(255, 250, 240, .78); margin-top: 0; }
 .pied::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: linear-gradient(90deg, var(--orange), var(--ambre), var(--feuille)); }

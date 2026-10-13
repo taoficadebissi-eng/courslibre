@@ -2,7 +2,7 @@
 // direct du catalogue, compteur de visiteurs. Le site fonctionne sans ce
 // script (pages pré-générées) ; il ajoute l'interactivité et la fraîcheur.
 import {
-  CONFIG, chargerCours, categoriesDe, coursApparentes, donneesStructurees, esc, rendreCartes,
+  CONFIG, chargerCours, estExpire, categoriesDe, coursApparentes, donneesStructurees, esc, rendreCartes,
   rendreCours, rendrePuces, signature, slugDe, statistiques, tronquer, texteRecherche,
 } from '/js/shared.mjs';
 
@@ -92,12 +92,20 @@ function normaliser(texte) {
   return texte.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
 }
 
+// Un cours dont la date de fin est passée disparaît, même si la page
+// pré-générée l'affiche encore (elle n'est régénérée qu'une fois par heure).
+function expire(element) {
+  const fin = element.dataset.fin;
+  return Boolean(fin) && estExpire({ dateFin: fin });
+}
+
 function appliquerFiltres() {
   if (!grille) return;
   const mots = normaliser(etat.q).split(/\s+/).filter(Boolean);
   let visibles = 0;
   for (const carte of $$('.carte', grille)) {
     const ok =
+      !expire(carte) &&
       (!etat.cat || carte.dataset.cat === etat.cat) &&
       (!etat.niveau || carte.dataset.niveau === etat.niveau) &&
       mots.every((m) => carte.dataset.q.includes(m));
@@ -105,12 +113,29 @@ function appliquerFiltres() {
     if (ok) visibles++;
   }
   $('#compte').textContent = `${visibles} cours${etat.cat ? ` · ${etat.cat}` : ''}`;
+  const chiffre = $('#chiffre-cours');
+  if (chiffre && !etat.cat && !etat.q && !etat.niveau) chiffre.textContent = visibles;
   $('#vide').hidden = visibles !== 0;
   $$('.puce').forEach((p) => p.classList.toggle('is-actif', p.dataset.cat === etat.cat));
   const url = new URL(location.href);
   etat.cat ? url.searchParams.set('categorie', etat.cat) : url.searchParams.delete('categorie');
   history.replaceState(null, '', url);
   majCarteEnVue();
+}
+
+// Page d'un cours : date de fin passée -> message, lien d'accès retiré, et
+// la page n'est plus à indexer.
+const fiche = $('.fiche[data-fin]');
+if (fiche && expire(fiche)) {
+  const avis = document.createElement('div');
+  avis.className = 'avis-termine';
+  avis.innerHTML = '<strong>Ce cours est terminé.</strong> Il n\'est plus proposé. <a href="/#catalogue">Voir les cours disponibles</a>';
+  fiche.before(avis);
+  $$('.bouton--grand', fiche).forEach((b) => b.remove());
+  const meta = document.createElement('meta');
+  meta.name = 'robots';
+  meta.content = 'noindex';
+  document.head.append(meta);
 }
 
 if (grille) {
@@ -187,7 +212,7 @@ async function afficherCoursEnDirect() {
   const cible = $('#cours-direct');
   const slug = decodeURIComponent(location.pathname.replace(/^\/cours\//, '').replace(/\/$/, ''));
   const liste = await actualiser();
-  const cours = liste?.find((c) => slugDe(c) === slug);
+  const cours = liste?.find((c) => slugDe(c) === slug);  // les cours expirés sont déjà exclus de la liste
   if (!cours) {
     cible.innerHTML = `<div class="centre"><h1 class="section__titre">Cours introuvable</h1><p>Ce cours n'existe plus ou n'est plus visible.</p><p><a class="bouton" href="/#catalogue">Voir tous les cours</a></p></div>`;
     return;

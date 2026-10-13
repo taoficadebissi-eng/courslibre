@@ -119,7 +119,17 @@ export function normaliser(doc) {
     dateAjout: f.dateAjout ?? '',
     actif: f.actif !== false,
     ordre: typeof f.ordreAffichage === 'number' ? f.ordreAffichage : null,
+    dateFin: typeof f.dateFin === 'string' ? f.dateFin : '',
   };
+}
+
+/** Vrai si la date de fin du cours est passée (sans date : jamais expiré). */
+export function estExpire(cours, maintenant = Date.now()) {
+  return Boolean(cours.dateFin) && new Date(cours.dateFin).getTime() < maintenant;
+}
+
+export function dateLongue(iso) {
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 function comparer(a, b) {
@@ -141,7 +151,7 @@ export async function chargerCours(fetchFn = fetch) {
     for (const doc of json.documents ?? []) tous.push(normaliser(doc));
     page = json.nextPageToken ?? '';
   } while (page);
-  return tous.filter((c) => c.actif && c.titre && c.lienCours).sort(comparer);
+  return tous.filter((c) => c.actif && c.titre && c.lienCours && !estExpire(c)).sort(comparer);
 }
 
 // ---------- Rendu HTML ----------
@@ -162,7 +172,7 @@ function certificat(c) {
 }
 
 function pastilles(c) {
-  const items = [c.duree, c.langue, certificat(c)].filter(Boolean);
+  const items = [c.duree, c.langue, certificat(c), c.dateFin ? `Jusqu'au ${dateLongue(c.dateFin)}` : ''].filter(Boolean);
   return items.map((t) => `<li>${esc(t)}</li>`).join('');
 }
 
@@ -178,7 +188,7 @@ export function rendreCarte(c, i = 0) {
   const image = c.lienImage
     ? `<img class="carte__img" src="${esc(c.lienImage)}" alt="" loading="lazy" decoding="async" referrerpolicy="no-referrer">`
     : '';
-  return `<article class="carte reveal" style="--i:${i % 6}" data-id="${esc(c.id)}" data-cat="${esc(c.categorie)}" data-niveau="${c.niveauCle}" data-q="${esc(texteRecherche(c))}">
+  return `<article class="carte reveal" style="--i:${i % 6}" data-id="${esc(c.id)}" data-cat="${esc(c.categorie)}" data-niveau="${c.niveauCle}"${c.dateFin ? ` data-fin="${esc(c.dateFin)}"` : ''} data-q="${esc(texteRecherche(c))}">
   <a class="carte__lien" href="${esc(urlCours(c))}">
     <div class="carte__media t${teinte(c.categorie)}">
       <span class="carte__initiale" aria-hidden="true">${initiale}</span>
@@ -307,7 +317,7 @@ export function rendreCours(c, apparentes = []) {
     </div>
   </div>
 </section>
-<div class="fiche">
+<div class="fiche"${c.dateFin ? ` data-fin="${esc(c.dateFin)}"` : ''}>
   <article class="fiche__texte">
     ${image}
     <h2>À propos de ce cours</h2>
@@ -323,6 +333,7 @@ export function rendreCours(c, apparentes = []) {
         ${fiche('Plateforme', c.fournisseur)}
         ${fiche('Niveau', c.niveau)}
         ${fiche('Durée', c.duree)}
+        ${fiche('Disponible jusqu\'au', c.dateFin ? dateLongue(c.dateFin) : '')}
         ${fiche('Langue', c.langue)}
         ${fiche('Certificat', certificat(c) || 'Non proposé')}
         ${fiche('Catégorie', c.categorie)}

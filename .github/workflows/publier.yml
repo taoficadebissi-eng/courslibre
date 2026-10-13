@@ -36,6 +36,8 @@ jobs:
 
       - run: npm ci
 
+      - run: npm test
+
       - name: Générer le site
         run: npm run build
         env:
