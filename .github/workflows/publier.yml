@@ -1,0 +1,47 @@
+# Régénère et publie le site : toutes les heures, à chaque push sur main, ou
+# à la demande (onglet Actions > « Publier le site » > Run workflow).
+#
+# Les visiteurs voient un cours ajouté dans l'espace privé IMMÉDIATEMENT (la
+# page lit Firestore en direct) ; cette publication met à jour les pages
+# statiques indexées par Google (une page par cours, plan du site).
+#
+# Secret requis : FIREBASE_TOKEN  (voir README, section « Publication automatique »)
+name: Publier le site
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: publication
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Générer le site
+        run: npm run build
+        env:
+          SITE_URL: ${{ vars.SITE_URL || 'https://courslibre-gf.web.app' }}
+
+      - name: Publier sur Firebase Hosting
+        run: npx --yes firebase-tools@13.35.1 deploy --only hosting --project gestion-de-formation-5b049 --non-interactive
+        env:
+          FIREBASE_TOKEN: ${{ secrets.FIREBASE_TOKEN }}

@@ -1,0 +1,16 @@
+{
+  "name": "courslibre",
+  "private": true,
+  "version": "2.0.0",
+  "description": "CoursLibre - vitrine publique de cours gratuits (HTML/CSS/JS pre-rendu)",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "serve": "npx --yes firebase-tools@13.35.1 emulators:start --only hosting --project demo-courslibre"
+  },
+  "dependencies": {
+    "@fontsource-variable/fraunces": "^5.1.0",
+    "@fontsource-variable/manrope": "^5.1.0"
+  }
+}
