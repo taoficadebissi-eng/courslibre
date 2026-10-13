@@ -35,14 +35,25 @@ class _AdminLoginScreenState extends State<AdminLoginScreen> {
         password: _motDePasse.text,
       );
       final user = FirebaseAuth.instance.currentUser;
-      if (user != null && !user.emailVerified && mounted) {
-        setState(
-          () => _erreur =
-              'E-mail non vérifié : utilisez "Mot de passe oublié" pour le vérifier.',
-        );
+      if (user != null && !user.emailVerified) {
+        // Premiere connexion : on envoie le lien de verification, puis on
+        // deconnecte. Apres avoir clique sur le lien, se reconnecter.
+        await user.sendEmailVerification();
+        await FirebaseAuth.instance.signOut();
+        if (mounted) {
+          setState(
+            () => _erreur =
+                'E-mail non verifie : un lien vient de vous etre envoye. '
+                'Cliquez dessus (spams compris), puis reconnectez-vous.',
+          );
+        }
       }
-    } on FirebaseAuthException {
-      setState(() => _erreur = 'Email ou mot de passe incorrect');
+    } on FirebaseAuthException catch (e) {
+      setState(
+        () => _erreur = e.code == 'too-many-requests'
+            ? 'Trop de tentatives, reessayez dans quelques minutes'
+            : 'Email ou mot de passe incorrect',
+      );
     } finally {
       if (mounted) setState(() => _enCours = false);
     }
