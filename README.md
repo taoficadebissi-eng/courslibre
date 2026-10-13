@@ -14,16 +14,23 @@ Firebase. Projet **indépendant** de Gestion Formation : seul le lien
   dans le routeur et dans `firestore.rules`.
 - Plan Spark : pas de Storage ni de Cloud Functions ; les images sont des liens.
 
+## Projet Firebase partagé
+CoursLibre utilise le **même projet Firebase** que Gestion Formation
+(`gestion-de-formation-5b049`, affiché « CoursLibre » dans la console), avec :
+- son propre site Hébergement (`courslibre-gf`) ;
+- les règles Firestore **définies dans le dépôt Gestion** (`firestore.rules`,
+  sections `cours_gratuits` et `compteur`). Ce dépôt ne déploie donc **que**
+  l'hébergement : ne jamais y ajouter de règles Firestore, elles écraseraient
+  celles de Gestion.
+
 ## Mise en route
 ```bash
 flutter pub get
 flutter run -d chrome
 flutter build web --release
-firebase deploy --only firestore:rules,hosting
+firebase deploy --only hosting
 ```
 
-## Configuration Firebase (à faire une fois)
-`lib/firebase_options.dart` est **provisoire** (copie de celle de Gestion).
-Créez un projet Firebase dédié (Authentication e-mail/mot de passe + Firestore),
-puis `flutterfire configure` dans ce dossier, et mettez à jour `.firebaserc`.
-Créez et vérifiez le compte super-admin dans ce projet.
+Premier déploiement : créer le site une fois avec
+`firebase hosting:sites:create courslibre-gf` (si le nom est pris, en choisir
+un autre et le reporter dans `firebase.json`).
