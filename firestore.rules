@@ -1,0 +1,37 @@
+rules_version = '2';
+
+// CoursLibre : vitrine publique de cours gratuits.
+// - Lecture publique des cours et du compteur de visiteurs.
+// - Ecriture des cours réservée au super-admin (compte Firebase Auth dont
+//   l'e-mail est vérifié).
+// - Compteur de visiteurs : seule opération autorisée sans connexion, bornée
+//   à +1 par écriture.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function estSuperAdmin() {
+      return request.auth != null
+        && request.auth.token.email == 'taoficadebissi@gmail.com'
+        && request.auth.token.email_verified == true;
+    }
+
+    match /cours_gratuits/{coursId} {
+      allow read: if true;
+      allow write: if estSuperAdmin();
+    }
+
+    match /compteur/{docId} {
+      allow read: if true;
+
+      allow create: if docId == 'visiteurs'
+        && request.resource.data.keys().hasOnly(['total'])
+        && request.resource.data.total == 1;
+
+      allow update: if docId == 'visiteurs'
+        && request.resource.data.keys().hasOnly(['total'])
+        && request.resource.data.total == resource.data.total + 1;
+
+      allow delete: if false;
+    }
+  }
+}
