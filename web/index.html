@@ -1,46 +1,408 @@
 <!DOCTYPE html>
+
 <html>
+
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
-
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
-
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
   <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
 
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+
+  <meta name="description" content="CoursLibre - cours gratuits selectionnes pour vous">
+
+  <meta name="apple-mobile-web-app-capable" content="yes">
+
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="courslibre">
+
+  <meta name="apple-mobile-web-app-title" content="CoursLibre">
+
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>courslibre</title>
-  <link rel="manifest" href="manifest.json">
-</head>
-<body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
+  <link rel="dns-prefetch" href="https://firestore.googleapis.com">
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <link rel="dns-prefetch" href="https://www.googleapis.com">
+
+  <link rel="dns-prefetch" href="https://securetoken.googleapis.com">
+  <link rel="dns-prefetch" href="https://identitytoolkit.googleapis.com">
+
+  <link rel="preconnect" href="https://firestore.googleapis.com">
+
+  <link rel="preconnect" href="https://www.googleapis.com">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@500;700;900&family=Manrope:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+  <title>CoursLibre</title>
+
+  <link rel="manifest" href="manifest.json">
+
+
+
+  <style>
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+
+      /* Identite CoursLibre / Gestion Formation : encre bleu nuit, orange
+
+         brule -> ambre, accent vert, fond creme. */
+
+      --ink: #16223D;
+
+      --ink-deep: #0F1830;
+
+      --orange-deep: #973D12;
+
+      --orange: #C6511B;
+
+      --amber: #F2A93C;
+
+      --leaf: #3FA968;
+
+      --amber-bright: #FFCF80;
+
+      --paper: #F7ECD9;
+
+    }
+
+    body {
+
+      background: linear-gradient(160deg, var(--ink-deep) 0%, var(--ink) 45%, var(--orange-deep) 85%, var(--orange) 100%);
+
+      font-family: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+      overflow: hidden; height: 100vh; width: 100vw;
+
+    }
+
+    #splash-screen {
+
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+
+      background: linear-gradient(160deg, var(--ink-deep) 0%, var(--ink) 45%, var(--orange-deep) 85%, var(--orange) 100%);
+
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+
+      z-index: 9999; transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+
+      position: fixed; overflow: hidden;
+
+    }
+
+    #splash-screen.hidden { opacity: 0; transform: scale(1.1); pointer-events: none; }
+
+
+
+    /* Lueur chaude derriere le logo, echo du degrade de marque */
+
+    .sunrise {
+
+      position: absolute; bottom: -40%; left: 50%; transform: translateX(-50%);
+
+      width: 900px; height: 900px; border-radius: 50%;
+
+      background: radial-gradient(circle, rgba(242,169,60,0.35) 0%, rgba(198,81,27,0.14) 40%, transparent 70%);
+
+      filter: blur(10px); z-index: 0; animation: sunriseBreathe 6s ease-in-out infinite;
+
+    }
+
+    @keyframes sunriseBreathe { 0%, 100% { opacity: 0.7; } 50% { opacity: 1; } }
+
+
+
+    .splash-logo-container { position: relative; width: 140px; height: 140px; margin-bottom: 32px; z-index: 2; }
+
+    .splash-logo {
+
+      width: 140px; height: 140px; background: var(--paper); border-radius: 30% 30% 30% 8%;
+
+      display: flex; justify-content: center; align-items: center;
+
+      box-shadow: 0 20px 60px rgba(242, 174, 60, 0.35), 0 0 0 1px rgba(255,255,255,0.08) inset;
+
+      animation: logoFloat 3s ease-in-out infinite;
+
+      position: relative; z-index: 2; overflow: hidden;
+
+    }
+
+    .splash-logo img { width: 96px; height: 96px; object-fit: contain; }
+
+    .splash-logo-glow {
+
+      position: absolute; top: -12px; left: -12px; right: -12px; bottom: -12px;
+
+      background: linear-gradient(135deg, var(--amber) 0%, var(--leaf) 100%);
+
+      border-radius: 36% 36% 36% 12%; opacity: 0.35; filter: blur(28px);
+
+      animation: glowPulse 2s ease-in-out infinite; z-index: 1;
+
+    }
+
+    @keyframes logoFloat { 0%, 100% { transform: translateY(0) rotate(0deg); } 50% { transform: translateY(-10px) rotate(-1.5deg); } }
+
+    @keyframes glowPulse { 0%, 100% { opacity: 0.3; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.06); } }
+
+
+
+    .splash-title {
+
+      color: var(--paper); font-family: 'Fraunces', serif; font-size: 40px; font-weight: 700;
+
+      letter-spacing: -1px; text-shadow: 0 4px 24px rgba(0,0,0,0.25);
+
+      animation: fadeInUp 0.8s ease-out 0.2s both; z-index: 2; position: relative;
+
+    }
+
+    .splash-subtitle {
+
+      color: var(--amber-bright); font-size: 13px; margin-top: 10px;
+
+      font-weight: 800; letter-spacing: 3px; text-transform: uppercase;
+
+      animation: fadeInUp 0.8s ease-out 0.4s both; z-index: 2; position: relative;
+
+    }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+
+
+    .progress-container { width: 300px; margin-top: 54px; animation: fadeInUp 0.8s ease-out 0.6s both; z-index: 2; position: relative; }
+
+    .progress-bar-bg {
+
+      width: 100%; height: 10px; background: rgba(255,255,255,0.12); border-radius: 10px;
+
+      overflow: hidden; position: relative; box-shadow: 0 0 0 1px rgba(255,255,255,0.06) inset;
+
+    }
+
+    .progress-bar-fill {
+
+      height: 100%; width: 0%; background: linear-gradient(90deg, var(--amber), var(--leaf), var(--amber-bright));
+
+      background-size: 200% 100%; border-radius: 10px; transition: width 0.4s ease-out;
+
+      animation: shimmer 2s linear infinite; position: relative;
+
+      box-shadow: 0 0 16px rgba(255, 174, 92, 0.6);
+
+    }
+
+    .progress-bar-fill::after {
+
+      content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+
+      animation: shimmer 1.5s linear infinite;
+
+    }
+
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+
+    .progress-text { display: flex; justify-content: space-between; margin-top: 14px; font-size: 12.5px; color: rgba(251,244,228,0.65); }
+
+    .progress-percent { color: var(--amber-bright); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+    .loading-dots { display: inline-flex; gap: 4px; margin-left: 4px; }
+
+    .loading-dots span { width: 4px; height: 4px; background: var(--amber-bright); border-radius: 50%; animation: dotBounce 1.4s ease-in-out infinite; }
+
+    .loading-dots span:nth-child(1) { animation-delay: 0s; }
+
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dotBounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; } 40% { transform: scale(1); opacity: 1; } }
+
+
+
+    .splash-version {
+
+      position: absolute; bottom: 30px; color: rgba(251,244,228,0.35); font-size: 11px;
+
+      letter-spacing: 1px; animation: fadeInUp 0.8s ease-out 1s both; z-index: 2;
+
+    }
+
+
+
+    /* Rising sparks instead of plain dots - evokes ideas/knowledge taking flight */
+
+    .particles { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; pointer-events: none; z-index: 1; }
+
+    .particle {
+
+      position: absolute; border-radius: 50%;
+
+      background: radial-gradient(circle, var(--amber-bright) 0%, rgba(255,203,107,0) 70%);
+
+      animation: particleFloat linear infinite;
+
+    }
+
+    .particle:nth-child(1) { left: 8%; top: 25%; animation-duration: 9s; width: 6px; height: 6px; }
+
+    .particle:nth-child(2) { left: 28%; top: 65%; animation-duration: 13s; width: 9px; height: 9px; }
+
+    .particle:nth-child(3) { left: 48%; top: 35%; animation-duration: 11s; width: 5px; height: 5px; }
+
+    .particle:nth-child(4) { left: 68%; top: 72%; animation-duration: 10s; width: 7px; height: 7px; }
+
+    .particle:nth-child(5) { left: 84%; top: 45%; animation-duration: 12s; width: 10px; height: 10px; }
+
+    .particle:nth-child(6) { left: 16%; top: 82%; animation-duration: 8s; width: 6px; height: 6px; }
+
+    .particle:nth-child(7) { left: 58%; top: 18%; animation-duration: 14s; width: 5px; height: 5px; }
+
+    .particle:nth-child(8) { left: 91%; top: 85%; animation-duration: 9s; width: 8px; height: 8px; }
+
+    @keyframes particleFloat {
+
+      0% { transform: translateY(0) translateX(0) scale(0.8); opacity: 0; }
+
+      10% { opacity: 0.9; }
+
+      90% { opacity: 0.9; }
+
+      100% { transform: translateY(-100vh) translateX(40px) scale(1.2); opacity: 0; }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div id="splash-screen">
+
+    <div class="sunrise"></div>
+
+
+
+    <div class="particles">
+
+      <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+
+      <div class="particle"></div><div class="particle"></div><div class="particle"></div><div class="particle"></div>
+
+    </div>
+
+
+
+    <div class="splash-logo-container">
+
+      <div class="splash-logo-glow"></div>
+
+      <div class="splash-logo">
+
+        <img src="assets/assets/images/logo_courslibre.png" alt="Logo CoursLibre">
+
+      </div>
+
+    </div>
+
+
+
+    <div class="splash-title">CoursLibre</div>
+
+    <div class="splash-subtitle">Formation gratuite pour tous</div>
+
+
+
+    <div class="progress-container">
+
+      <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill"></div></div>
+
+      <div class="progress-text">
+
+        <span><span id="progress-status">Initialisation</span><span class="loading-dots"><span></span><span></span><span></span></span></span>
+
+        <span class="progress-percent" id="progress-percent">0%</span>
+
+      </div>
+
+    </div>
+
+
+
+    <div class="splash-version">Version 1.0.0</div>
+
+  </div>
+
+
+
   <script src="flutter_bootstrap.js" async></script>
+
+
+
+  <script>
+
+    (function() {
+
+      const fill = document.getElementById('progress-fill');
+
+      const percent = document.getElementById('progress-percent');
+
+      const status = document.getElementById('progress-status');
+
+      const splash = document.getElementById('splash-screen');
+
+      let progress = 0; let targetProgress = 0; let isReady = false;
+
+      const statusMessages = [
+
+        { at: 0, text: 'Initialisation' }, { at: 15, text: 'Chargement du moteur' },
+
+        { at: 30, text: 'Connexion Firebase' }, { at: 50, text: 'Chargement des donnees' },
+
+        { at: 70, text: 'Preparation de l interface' }, { at: 85, text: 'Finalisation' },
+
+        { at: 95, text: 'Presque pret' },
+
+      ];
+
+      function updateStatus(p) { for (let i = statusMessages.length - 1; i >= 0; i--) { if (p >= statusMessages[i].at) { status.textContent = statusMessages[i].text; break; } } }
+
+      function animateProgress() {
+
+        if (progress < targetProgress) { progress += (targetProgress - progress) * 0.1; if (targetProgress - progress < 0.5) progress = targetProgress; }
+
+        const displayProgress = Math.round(progress); fill.style.width = displayProgress + '%'; percent.textContent = displayProgress + '%'; updateStatus(displayProgress);
+
+        if (isReady && progress >= 100) { setTimeout(function() { splash.classList.add('hidden'); setTimeout(function() { splash.remove(); }, 800); }, 300); return; }
+
+        requestAnimationFrame(animateProgress);
+
+      }
+
+      const interval = setInterval(function() { if (targetProgress < 90) { const increment = Math.random() * (progress < 50 ? 5 : 2); targetProgress = Math.min(90, targetProgress + increment); } }, 300);
+
+      window.addEventListener('flutter-first-frame', function() { clearInterval(interval); targetProgress = 100; isReady = true; });
+
+      requestAnimationFrame(animateProgress);
+
+      setTimeout(function() { if (!isReady) { clearInterval(interval); targetProgress = 100; isReady = true; status.textContent = 'Chargement termine'; } }, 30000);
+
+    })();
+
+  </script>
+
 </body>
+
 </html>
