@@ -86,6 +86,13 @@ observer();
 
 // ---------- Accueil : filtres ----------
 const etat = { q: '', cat: '', niveau: '' };
+
+function reinitialiser() {
+  Object.assign(etat, { q: '', cat: '', niveau: '' });
+  $('#recherche-champ').value = '';
+  $('#niveau').value = '';
+  appliquerFiltres();
+}
 const grille = $('#grille');
 
 function normaliser(texte) {
@@ -97,6 +104,21 @@ function normaliser(texte) {
 function expire(element) {
   const fin = element.dataset.fin;
   return Boolean(fin) && estExpire({ dateFin: fin });
+}
+
+/** Zone « aucun résultat » : message adapté selon qu'il n'y a aucun cours du tout ou un filtre trop strict. */
+function majVide(visibles) {
+  const total = $$('.carte', grille).length;
+  const catalogueVide = total === 0;
+  $('#vide-titre').textContent = catalogueVide ? 'Le catalogue se prépare.' : 'Aucun cours ne correspond.';
+  $('#vide-texte').innerHTML = catalogueVide
+    ? 'De nouveaux cours gratuits arrivent très bientôt. Revenez nous voir !'
+    : 'Essayez un autre mot, ou <button type="button" class="lien" id="reinitialiser">affichez tous les cours</button>.';
+  $('#reinitialiser')?.addEventListener('click', reinitialiser);
+  $('#vide').hidden = visibles !== 0;
+  $('.outils').hidden = catalogueVide;
+  $('#compte').hidden = catalogueVide;
+  $$('#chiffres li:not(:last-child)').forEach((li) => (li.hidden = catalogueVide));
 }
 
 function appliquerFiltres() {
@@ -112,10 +134,10 @@ function appliquerFiltres() {
     carte.hidden = !ok;
     if (ok) visibles++;
   }
+  majVide(visibles);
   $('#compte').textContent = `${visibles} cours${etat.cat ? ` · ${etat.cat}` : ''}`;
   const chiffre = $('#chiffre-cours');
   if (chiffre && !etat.cat && !etat.q && !etat.niveau) chiffre.textContent = visibles;
-  $('#vide').hidden = visibles !== 0;
   $$('.puce').forEach((p) => p.classList.toggle('is-actif', p.dataset.cat === etat.cat));
   const url = new URL(location.href);
   etat.cat ? url.searchParams.set('categorie', etat.cat) : url.searchParams.delete('categorie');
@@ -162,12 +184,7 @@ if (grille) {
     etat.cat = puce.dataset.cat;
     appliquerFiltres();
   });
-  $('#reinitialiser').addEventListener('click', () => {
-    Object.assign(etat, { q: '', cat: '', niveau: '' });
-    $('#recherche-champ').value = '';
-    $('#niveau').value = '';
-    appliquerFiltres();
-  });
+  $('#reinitialiser')?.addEventListener('click', reinitialiser);
   if (etat.cat) appliquerFiltres();
 }
 

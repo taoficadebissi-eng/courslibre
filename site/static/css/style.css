@@ -94,6 +94,7 @@ button, input, select { font: inherit; color: inherit; }
 .hero__chiffres strong { font-family: var(--police-titre); font-size: 1.8rem; color: var(--ambre-clair); margin-right: 6px; }
 .hero__vague { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: 90px; fill: var(--sable); }
 
+.hero--sans-visuel .hero__interieur { grid-template-columns: minmax(0, 1fr); }
 .hero__visuel { position: relative; height: 380px; }
 .vedette { position: absolute; width: 280px; padding: 20px 22px; border-radius: 22px; background: rgba(255, 250, 240, .96); color: var(--texte); box-shadow: 0 30px 50px -22px rgba(0, 0, 0, .7); display: flex; flex-direction: column; gap: 8px; animation: flotte 7s ease-in-out infinite; }
 .vedette strong { font-family: var(--police-titre); font-size: 1.15rem; line-height: 1.2; }

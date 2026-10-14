@@ -89,7 +89,8 @@ function accueil(liste) {
   for (const c of liste) {
     if (vedettes.length < 3 && !vedettes.includes(c)) vedettes.push(c);
   }
-  const corps = `<section class="hero">
+  const vide = liste.length === 0;
+  const corps = `<section class="hero${vedettes.length ? '' : ' hero--sans-visuel'}">
   <div class="hero__fond" aria-hidden="true"><span class="soleil"></span><span class="grain"></span></div>
   <div class="hero__interieur">
     <div class="hero__texte">
@@ -102,18 +103,18 @@ function accueil(liste) {
         <button type="submit">Chercher</button>
       </form>
       <ul class="hero__chiffres" id="chiffres">
-        <li><strong id="chiffre-cours">${cours}</strong> cours gratuits</li>
-        <li><strong id="chiffre-plateformes">${plateformes}</strong> plateformes</li>
+        <li${vide ? ' hidden' : ''}><strong id="chiffre-cours">${cours}</strong> cours gratuits</li>
+        <li${vide ? ' hidden' : ''}><strong id="chiffre-plateformes">${plateformes}</strong> plateformes</li>
         <li><strong>0 €</strong> pour apprendre</li>
       </ul>
     </div>
-    <div class="hero__visuel" aria-hidden="true">
+    ${vedettes.length ? `<div class="hero__visuel" aria-hidden="true">
       ${vedettes
         .map(
           (c, i) => `<div class="vedette vedette--${i + 1}"><span class="vedette__rubrique">${esc(c.categorie)}</span><strong>${esc(tronquer(c.titre, 48))}</strong><span class="vedette__source">${esc(c.fournisseur)}</span></div>`,
         )
         .join('\n      ')}
-    </div>
+    </div>` : ''}
   </div>
   <svg class="hero__vague" viewBox="0 0 1440 90" preserveAspectRatio="none" aria-hidden="true"><path d="M0 60C240 100 480 10 720 40s480 50 720 0V90H0Z"/></svg>
 </section>
@@ -122,7 +123,7 @@ function accueil(liste) {
   <div class="section__interieur">
     <p class="section__etiquette">Le catalogue</p>
     <h2 class="section__titre">Trouvez le cours qui vous ressemble</h2>
-    <div class="outils">
+    <div class="outils"${vide ? ' hidden' : ''}>
       <div class="puces" id="puces" role="group" aria-label="Filtrer par catégorie">${rendrePuces(liste)}</div>
       <label class="niveau"><span>Niveau</span>
         <select id="niveau">
@@ -133,13 +134,13 @@ function accueil(liste) {
         </select>
       </label>
     </div>
-    <p class="compte" id="compte" aria-live="polite">${cours} cours</p>
+    <p class="compte" id="compte" aria-live="polite"${vide ? ' hidden' : ''}>${cours} cours</p>
     <div class="grille" id="grille" data-sig="${signature(liste)}">
 ${rendreCartes(liste)}
     </div>
-    <div class="vide" id="vide" hidden>
-      <p class="vide__titre">Aucun cours ne correspond.</p>
-      <p>Essayez un autre mot, ou <button type="button" class="lien" id="reinitialiser">affichez tous les cours</button>.</p>
+    <div class="vide" id="vide"${vide ? '' : ' hidden'}>
+      <p class="vide__titre" id="vide-titre">${vide ? 'Le catalogue se prépare.' : 'Aucun cours ne correspond.'}</p>
+      <p id="vide-texte">${vide ? 'De nouveaux cours gratuits arrivent très bientôt. Revenez nous voir !' : 'Essayez un autre mot, ou <button type="button" class="lien" id="reinitialiser">affichez tous les cours</button>.'}</p>
     </div>
   </div>
 </section>
@@ -262,10 +263,8 @@ async function main() {
       await new Promise((r) => setTimeout(r, 1500 * essai));
     }
   }
-  if (liste.length === 0) {
-    console.error('Aucun cours lu : génération annulée pour ne pas publier un site vide.');
-    process.exit(1);
-  }
+  // Un catalogue vide est un état valide (cours retirés à dessein) : une erreur
+  // de lecture, elle, interrompt déjà la génération (voir plus haut).
   console.log(`${liste.length} cours lus.`);
 
   await rm(dist, { recursive: true, force: true });
